@@ -1,5 +1,5 @@
 import { IndexingProgressUpdate } from "core";
-import { AnimatedEllipsis } from "../../../components";
+import { AnimatedEllipsis } from "../../../components/AnimatedEllipsis";
 
 export interface IndexingProgressTitleTextProps {
   update: IndexingProgressUpdate;
@@ -8,6 +8,7 @@ export interface IndexingProgressTitleTextProps {
 const STATUS_TO_TEXT: Record<IndexingProgressUpdate["status"], string> = {
   done: "Indexing complete",
   loading: "Initializing",
+  waiting: "Indexing other workspace",
   indexing: "Indexing in-progress",
   paused: "Indexing paused",
   failed: "Indexing failed",

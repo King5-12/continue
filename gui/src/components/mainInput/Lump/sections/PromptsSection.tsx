@@ -4,7 +4,7 @@ import {
   PencilIcon,
 } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
-import { SlashCommandDescription } from "core";
+import { SlashCommandDescWithSource } from "core";
 import { useContext, useMemo } from "react";
 import { useAuth } from "../../../../context/Auth";
 import { IdeMessengerContext } from "../../../../context/IdeMessenger";
@@ -15,10 +15,12 @@ import { useMainEditor } from "../../TipTapEditor";
 import { useLump } from "../LumpContext";
 import { ExploreBlocksButton } from "./ExploreBlocksButton";
 
-type PromptWithSlug = SlashCommandDescription & { slug?: string };
+interface PromptCommandWithSlug extends SlashCommandDescWithSource {
+  slug?: string;
+}
 
 interface PromptRowProps {
-  prompt: PromptWithSlug;
+  prompt: PromptCommandWithSlug;
   isBookmarked: boolean;
   setIsBookmarked: (isBookmarked: boolean) => void;
   onEdit?: () => void;
@@ -38,7 +40,11 @@ function PromptRow({
 
   const handlePromptClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    mainEditor?.commands.insertPrompt(prompt);
+    mainEditor?.commands.insertPrompt({
+      title: prompt.name,
+      description: prompt.description,
+      content: prompt.prompt,
+    });
     hideLump();
   };
 
@@ -53,6 +59,9 @@ function PromptRow({
       onEdit();
     }
   };
+
+  const canEdit =
+    prompt.promptFile && !prompt.promptFile.startsWith("builtin:");
 
   return (
     <div
@@ -72,8 +81,9 @@ function PromptRow({
       </div>
       <div className="flex items-center gap-2">
         <PencilIcon
-          className="h-3 w-3 cursor-pointer text-gray-400 hover:brightness-125"
-          onClick={handleEditClick}
+          className={`h-3 w-3 cursor-pointer text-gray-400 hover:brightness-125 ${!canEdit ? "pointer-events-none cursor-not-allowed opacity-50" : ""}`}
+          onClick={canEdit ? handleEditClick : undefined}
+          aria-disabled={!canEdit}
         />
         <div
           onClick={handleBookmarkClick}
@@ -102,7 +112,7 @@ export function PromptsSection() {
     (state) => state.config.config.slashCommands ?? [],
   );
 
-  const handleEdit = (prompt: PromptWithSlug) => {
+  const handleEdit = (prompt: PromptCommandWithSlug) => {
     if (prompt.promptFile) {
       ideMessenger.post("openFile", {
         path: prompt.promptFile,
@@ -115,34 +125,35 @@ export function PromptsSection() {
     } else {
       ideMessenger.post("config/openProfile", {
         profileId: undefined,
+        element: { sourceFile: (prompt as any).sourceFile },
       });
     }
   };
 
   const sortedCommands = useMemo(() => {
-    const promptsWithSlug: PromptWithSlug[] = structuredClone(slashCommands);
+    const promptsWithSlug: PromptCommandWithSlug[] =
+      structuredClone(slashCommands);
     // get the slugs from rawYaml
     if (selectedProfile?.rawYaml) {
       const parsed = parseConfigYaml(selectedProfile.rawYaml);
       const parsedPrompts = parsed.prompts ?? [];
 
       let index = 0;
-      for (const prompt of promptsWithSlug) {
+      for (const commandWithSlug of promptsWithSlug) {
         // skip for local prompt files
-        if (prompt.promptFile) continue;
+        if (commandWithSlug.promptFile) continue;
 
         const yamlPrompt = parsedPrompts[index];
         if (yamlPrompt) {
           if ("uses" in yamlPrompt) {
-            prompt.slug = yamlPrompt.uses;
+            commandWithSlug.slug = yamlPrompt.uses;
           } else {
-            prompt.slug = `${selectedProfile?.fullSlug.ownerSlug}/${selectedProfile?.fullSlug.packageSlug}`;
+            commandWithSlug.slug = `${selectedProfile?.fullSlug.ownerSlug}/${selectedProfile?.fullSlug.packageSlug}`;
           }
         }
         index = index + 1;
       }
     }
-
     return promptsWithSlug.sort((a, b) => {
       const aBookmarked = isCommandBookmarked(a.name);
       const bBookmarked = isCommandBookmarked(b.name);

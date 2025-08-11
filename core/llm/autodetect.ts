@@ -1,9 +1,5 @@
-import {
-  ChatMessage,
-  ModelCapability,
-  ModelDescription,
-  TemplateType,
-} from "../index.js";
+import { ChatMessage, ModelCapability, TemplateType } from "../index.js";
+import { NEXT_EDIT_MODELS } from "./constants.js";
 
 import {
   anthropicTemplateMessages,
@@ -41,17 +37,18 @@ import {
   xWinCoderEditPrompt,
   zephyrEditPrompt,
 } from "./templates/edit.js";
-import { PROVIDER_TOOL_SUPPORT } from "./toolSupport.js";
 
 const PROVIDER_HANDLES_TEMPLATING: string[] = [
   "lmstudio",
   "openai",
+  "nvidia",
   "ollama",
   "together",
   "novita",
   "msty",
   "anthropic",
   "bedrock",
+  "cohere",
   "sagemaker",
   "continue-proxy",
   "mistral",
@@ -65,6 +62,7 @@ const PROVIDER_HANDLES_TEMPLATING: string[] = [
 const PROVIDER_SUPPORTS_IMAGES: string[] = [
   "openai",
   "ollama",
+  "cohere",
   "gemini",
   "msty",
   "anthropic",
@@ -89,6 +87,8 @@ const MODEL_SUPPORTS_IMAGES: string[] = [
   "gpt-4o-mini",
   "gpt-4-vision",
   "claude-3",
+  "c4ai-aya-vision-8b",
+  "c4ai-aya-vision-32b",
   "gemini-ultra",
   "gemini-1.5-pro",
   "gemini-1.5-flash",
@@ -101,17 +101,6 @@ const MODEL_SUPPORTS_IMAGES: string[] = [
   "llama4",
   "granite-vision",
 ];
-
-function modelSupportsTools(modelDescription: ModelDescription) {
-  if (modelDescription.capabilities?.tools !== undefined) {
-    return modelDescription.capabilities.tools;
-  }
-  const providerSupport = PROVIDER_TOOL_SUPPORT[modelDescription.provider];
-  if (!providerSupport) {
-    return false;
-  }
-  return providerSupport(modelDescription.model) ?? false;
-}
 
 function modelSupportsImages(
   provider: string,
@@ -140,6 +129,7 @@ function modelSupportsImages(
 const PARALLEL_PROVIDERS: string[] = [
   "anthropic",
   "bedrock",
+  "cohere",
   "sagemaker",
   "deepinfra",
   "gemini",
@@ -166,6 +156,52 @@ function llmCanGenerateInParallel(provider: string, model: string): boolean {
   return PARALLEL_PROVIDERS.includes(provider);
 }
 
+function isProviderHandlesTemplatingOrNoTemplateTypeRequired(
+  modelName: string,
+): boolean {
+  return (
+    modelName.includes("gpt") ||
+    modelName.includes("command") ||
+    modelName.includes("aya") ||
+    modelName.includes("chat-bison") ||
+    modelName.includes("pplx") ||
+    modelName.includes("gemini") ||
+    modelName.includes("grok") ||
+    modelName.includes("moonshot") ||
+    modelName.includes("kimi") ||
+    modelName.includes("mercury") ||
+    /^o\d/.test(modelName)
+  );
+}
+
+// NOTE: When updating this list,
+// update core/nextEdit/templating/NextEditPromptEngine.ts as well.
+const MODEL_SUPPORTS_NEXT_EDIT: string[] = [
+  NEXT_EDIT_MODELS.MERCURY_CODER_NEXTEDIT,
+  NEXT_EDIT_MODELS.MODEL_1,
+];
+
+function modelSupportsNextEdit(
+  capabilities: ModelCapability | undefined,
+  model: string,
+  title: string | undefined,
+): boolean {
+  if (capabilities?.nextEdit !== undefined) {
+    return capabilities.nextEdit;
+  }
+
+  const lower = model.toLowerCase();
+  if (
+    MODEL_SUPPORTS_NEXT_EDIT.some(
+      (modelName) => lower.includes(modelName) || title?.includes(modelName),
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function autodetectTemplateType(model: string): TemplateType | undefined {
   const lower = model.toLowerCase();
 
@@ -173,18 +209,10 @@ function autodetectTemplateType(model: string): TemplateType | undefined {
     return "codellama-70b";
   }
 
-  if (
-    lower.includes("gpt") ||
-    lower.includes("command") ||
-    lower.includes("chat-bison") ||
-    lower.includes("pplx") ||
-    lower.includes("gemini") ||
-    lower.includes("grok") ||
-    lower.includes("moonshot") ||
-    lower.includes("mercury")
-  ) {
+  if (isProviderHandlesTemplatingOrNoTemplateTypeRequired(lower)) {
     return undefined;
   }
+
   if (lower.includes("llama3") || lower.includes("llama-3")) {
     return "llama3";
   }
@@ -227,6 +255,11 @@ function autodetectTemplateType(model: string): TemplateType | undefined {
 
   // Claude requests always sent through Messages API, so formatting not necessary
   if (lower.includes("claude")) {
+    return "none";
+  }
+
+  // Nova Pro requests always sent through Converse API, so formatting not necessary
+  if (lower.includes("nova")) {
     return "none";
   }
 
@@ -387,5 +420,5 @@ export {
   autodetectTemplateType,
   llmCanGenerateInParallel,
   modelSupportsImages,
-  modelSupportsTools,
+  modelSupportsNextEdit,
 };

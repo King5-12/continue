@@ -10,8 +10,8 @@ import { BracketMatchingService } from "./filtering/BracketMatchingService.js";
 import { CompletionStreamer } from "./generation/CompletionStreamer.js";
 import { postprocessCompletion } from "./postprocessing/index.js";
 import { shouldPrefilter } from "./prefiltering/index.js";
-import { getAllSnippets } from "./snippets/index.js";
-import { renderPrompt } from "./templating/index.js";
+import { renderPromptWithTokenLimit } from "./templating/index.js";
+import { getAllSnippetsWithoutRace } from "./snippets/index.js";
 import { GetLspDefinitionsFunction } from "./types.js";
 import { AutocompleteDebouncer } from "./util/AutocompleteDebouncer.js";
 import { AutocompleteLoggingService } from "./util/AutocompleteLoggingService.js";
@@ -121,12 +121,19 @@ export class CompletionProvider {
       ...config?.tabAutocompleteOptions,
       ...llm.autocompleteOptions,
     };
+
+    // Enable static contextualization if defined.
+    if (config?.experimental?.enableStaticContextualization) {
+      options.experimental_enableStaticContextualization = true;
+    }
+
     return options;
   }
 
   public async provideInlineCompletionItems(
     input: AutocompleteInput,
     token: AbortSignal | undefined,
+    force?: boolean,
   ): Promise<AutocompleteOutcome | undefined> {
     try {
       // Create abort signal if not given
@@ -146,8 +153,12 @@ export class CompletionProvider {
       const options = await this._getAutocompleteOptions(llm);
 
       // Debounce
-      if (await this.debouncer.delayAndShouldDebounce(options.debounceDelay)) {
-        return undefined;
+      if (!force) {
+        if (
+          await this.debouncer.delayAndShouldDebounce(options.debounceDelay)
+        ) {
+          return undefined;
+        }
       }
 
       if (llm.promptTemplates?.autocomplete) {
@@ -166,7 +177,7 @@ export class CompletionProvider {
       }
 
       const [snippetPayload, workspaceDirs] = await Promise.all([
-        getAllSnippets({
+        getAllSnippetsWithoutRace({
           helper,
           ide: this.ide,
           getDefinitionsFromLsp: this.getDefinitionsFromLsp,
@@ -175,11 +186,13 @@ export class CompletionProvider {
         this.ide.getWorkspaceDirs(),
       ]);
 
-      const { prompt, prefix, suffix, completionOptions } = renderPrompt({
-        snippetPayload,
-        workspaceDirs,
-        helper,
-      });
+      const { prompt, prefix, suffix, completionOptions } =
+        renderPromptWithTokenLimit({
+          snippetPayload,
+          workspaceDirs,
+          helper,
+          llm,
+        });
 
       // Completion
       let completion: string | undefined = "";
@@ -196,6 +209,12 @@ export class CompletionProvider {
       } else {
         const multiline =
           !helper.options.transform || shouldCompleteMultiline(helper);
+
+        const rawGeneration = await llm.complete(
+          prompt,
+          token,
+          completionOptions,
+        );
 
         const completionStream =
           this.completionStreamer.streamCompletionWithFilters(
@@ -249,9 +268,13 @@ export class CompletionProvider {
         completionId: helper.input.completionId,
         gitRepo: await this.ide.getRepoName(helper.filepath),
         uniqueId: await this.ide.getUniqueId(),
-        timestamp: Date.now(),
+        timestamp: new Date().toISOString(),
         ...helper.options,
       };
+
+      if (options.experimental_enableStaticContextualization) {
+        outcome.enabledStaticContextualization = true;
+      }
 
       //////////
 

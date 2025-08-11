@@ -1,24 +1,37 @@
+import { createRuleMarkdown } from "@continuedev/config-yaml";
 import { ToolImpl } from ".";
 import { RuleWithSource } from "../..";
-import { createRuleFilePath, createRuleMarkdown } from "../../config/markdown";
+import { createRuleFilePath } from "../../config/markdown/utils";
+import {
+  getBooleanArg,
+  getOptionalStringArg,
+  getStringArg,
+} from "../parseArgs";
 
 export type CreateRuleBlockArgs = Pick<
   Required<RuleWithSource>,
-  "rule" | "description" | "alwaysApply" | "name"
+  "rule" | "name"
 > &
-  Pick<RuleWithSource, "globs">;
+  Pick<RuleWithSource, "globs" | "regex" | "description" | "alwaysApply">;
 
-export const createRuleBlockImpl: ToolImpl = async (
-  args: CreateRuleBlockArgs,
-  extras,
-) => {
-  const fileContent = createRuleMarkdown(args.name, args.rule, {
-    description: args.description,
-    globs: args.globs,
+export const createRuleBlockImpl: ToolImpl = async (args, extras) => {
+  const name = getStringArg(args, "name");
+  const rule = getStringArg(args, "rule");
+
+  const description = getOptionalStringArg(args, "description");
+  const regex = getOptionalStringArg(args, "regex");
+  const globs = getOptionalStringArg(args, "globs");
+  const alwaysApply = getBooleanArg(args, "alwaysApply", false);
+
+  const fileContent = createRuleMarkdown(name, rule, {
+    alwaysApply,
+    description,
+    globs,
+    regex,
   });
 
   const [localContinueDir] = await extras.ide.getWorkspaceDirs();
-  const ruleFilePath = createRuleFilePath(localContinueDir, args.name);
+  const ruleFilePath = createRuleFilePath(localContinueDir, name);
 
   await extras.ide.writeFile(ruleFilePath, fileContent);
   await extras.ide.openFile(ruleFilePath);
@@ -26,7 +39,7 @@ export const createRuleBlockImpl: ToolImpl = async (
   return [
     {
       name: "New Rule Block",
-      description: args.description || "",
+      description: description || "",
       uri: {
         type: "file",
         value: ruleFilePath,

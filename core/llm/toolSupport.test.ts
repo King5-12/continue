@@ -30,6 +30,11 @@ describe("PROVIDER_TOOL_SUPPORT", () => {
       ).toBe(true);
     });
 
+    it("should return true for Gemma models", () => {
+      expect(supportsFn("ownerSlug/packageSlug/openai/gemma")).toBe(true);
+      expect(supportsFn("ownerSlug/packageSlug/openai/gemma3")).toBe(true);
+    });
+
     it("should return true for O3 models", () => {
       expect(supportsFn("ownerSlug/packageSlug/openai/o3-preview")).toBe(true);
     });
@@ -56,6 +61,7 @@ describe("PROVIDER_TOOL_SUPPORT", () => {
         supportsFn("ownerSlug/packageSlug/anthropic/CLAUDE-3-5-sonnet"),
       ).toBe(true);
       expect(supportsFn("ownerSlug/packageSlug/openai/GPT-4-turbo")).toBe(true);
+      expect(supportsFn("ownerSlug/packageSlug/openai/Gemma3")).toBe(true);
       expect(supportsFn("ownerSlug/packageSlug/gemini/GEMINI-pro")).toBe(true);
     });
   });
@@ -98,6 +104,11 @@ describe("PROVIDER_TOOL_SUPPORT", () => {
       expect(supportsFn("o3-preview")).toBe(true);
     });
 
+    it("should return true for Gemma models", () => {
+      expect(supportsFn("gemma")).toBe(true);
+      expect(supportsFn("gemma3")).toBe(true);
+    });
+
     it("should return undefined for unsupported models", () => {
       expect(supportsFn("gpt-3.5-turbo")).toBe(false);
       expect(supportsFn("davinci")).toBe(false);
@@ -106,6 +117,20 @@ describe("PROVIDER_TOOL_SUPPORT", () => {
     it("should handle case insensitivity", () => {
       expect(supportsFn("GPT-4-turbo")).toBe(true);
       expect(supportsFn("O3-preview")).toBe(true);
+      expect(supportsFn("Gemma3")).toBe(true);
+    });
+  });
+
+  describe("cohere", () => {
+    const supportsFn = PROVIDER_TOOL_SUPPORT["cohere"];
+
+    it("should return true for Command models", () => {
+      expect(supportsFn("command-r")).toBe(true);
+      expect(supportsFn("command-a")).toBe(true);
+    });
+
+    it("should return false for other models", () => {
+      expect(supportsFn("c4ai-aya-expanse-32b")).toBe(false);
     });
   });
 
@@ -221,6 +246,7 @@ describe("PROVIDER_TOOL_SUPPORT", () => {
       expect(supportsFn("qwen2")).toBe(true);
       expect(supportsFn("mixtral-8x7b")).toBe(true);
       expect(supportsFn("command-r")).toBe(true);
+      expect(supportsFn("command-a")).toBe(true);
       expect(supportsFn("smollm2")).toBe(true);
       expect(supportsFn("hermes3")).toBe(true);
       expect(supportsFn("athene-v2")).toBe(true);

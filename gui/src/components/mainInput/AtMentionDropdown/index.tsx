@@ -25,12 +25,14 @@ import {
   vscQuickInputBackground,
 } from "../..";
 import { IdeMessengerContext } from "../../../context/IdeMessenger";
+import { useAppSelector } from "../../../redux/hooks";
 import { setDialogMessage, setShowDialog } from "../../../redux/slices/uiSlice";
 import { fontSize } from "../../../util";
 import FileIcon from "../../FileIcon";
 import SafeImg from "../../SafeImg";
 import AddDocsDialog from "../../dialogs/AddDocsDialog";
 import HeaderButtonWithToolTip from "../../gui/HeaderButtonWithToolTip";
+import { Button } from "../../ui";
 import { NAMED_ICONS } from "../icons";
 import type { ComboBoxItem, ComboBoxItemType } from "../types";
 
@@ -116,6 +118,7 @@ const QueryInput = styled.textarea`
   background-color: #fff1;
   border: 1px solid ${lightGray};
   border-radius: ${defaultBorderRadius};
+  overflow: hidden;
 
   padding: 0.2rem 0.4rem;
   width: 240px;
@@ -159,6 +162,9 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
   const dispatch = useDispatch();
 
   const ideMessenger = useContext(IdeMessengerContext);
+  const isInAgentMode = useAppSelector(
+    (store) => store.session.mode === "agent",
+  );
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -187,6 +193,7 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
         query,
         fullInput: "",
         selectedCode,
+        isInAgentMode,
       },
     );
 
@@ -238,14 +245,16 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
         .run();
 
       // Trigger warning message
-      ideMessenger.ide.showToast(
+      void ideMessenger.ide.showToast(
         "warning",
-        fileSize > 0 ? "File exceeds context length" : "Can't load the file",
+        fileSize > 0
+          ? "File exceeds model's context length"
+          : "Error loading file",
         {
           modal: true,
           detail:
             fileSize > 0
-              ? `'${item.title}' is ${formatFileSize(fileSize)} which exceeds the allowed context length and cannot be processed by the model`
+              ? `'${item.title}' cannot be added because it exceeds the model's allowed context length. File size: ${formatFileSize(fileSize)}`
               : `'${item.title}' could not be loaded. Please check if the file exists and has the correct permissions.`,
         },
       );
@@ -291,6 +300,26 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
           props.onClose(); // Escape the mention list after creating a new prompt file
         },
         description: "Create a new .prompt file",
+      });
+    } else if (subMenuTitle === "Mention rules files") {
+      items.push({
+        title: "Add new rule",
+        type: "action",
+        action: () => {
+          void ideMessenger.request("config/addLocalWorkspaceBlock", {
+            blockType: "rules",
+          });
+          const { tr } = props.editor.view.state;
+          const text = tr.doc.textBetween(0, tr.selection.from);
+          const start = text.lastIndexOf("@");
+          if (start !== -1) {
+            props.editor.view.dispatch(
+              tr.delete(start, tr.selection.from).scrollIntoView(),
+            );
+          }
+          props.onClose(); // Escape the mention list after creating a new rule
+        },
+        description: "Creates a rule file",
       });
     }
     setLoadingSubmenuItem(items.find((item) => item.id === "loading"));
@@ -341,8 +370,9 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
 
     if (item) {
       if (item.type === "file" && item.query) {
-        isItemTooBig(item.type, item.query).then(([fileExceeds, fileSize]) =>
-          handleItemTooBig(fileExceeds, fileSize, item),
+        void isItemTooBig(item.type, item.query).then(
+          ([fileExceeds, fileSize]) =>
+            handleItemTooBig(fileExceeds, fileSize, item),
         );
       } else {
         props.command({ ...item, itemType: item.type });
@@ -429,34 +459,53 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
   return (
     <ItemsDiv>
       {querySubmenuItem ? (
-        <QueryInput
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          rows={1}
-          ref={queryInputRef}
-          placeholder={querySubmenuItem.description}
-          onKeyDown={(e) => {
-            if (!queryInputRef.current) {
-              return;
-            }
-            if (e.key === "Enter") {
-              if (e.shiftKey) {
-                queryInputRef.current.innerText += "\n";
-              } else {
-                props.command({
-                  ...querySubmenuItem,
-                  itemType: querySubmenuItem.type,
-                  query: queryInputRef.current.value,
-                  label: `${querySubmenuItem.label}: ${queryInputRef.current.value}`,
-                });
+        <span className="flex items-center gap-x-1">
+          <QueryInput
+            wrap="off"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            rows={1}
+            ref={queryInputRef}
+            placeholder={querySubmenuItem.description}
+            onKeyDown={(e) => {
+              if (!queryInputRef.current) {
+                return;
               }
-            } else if (e.key === "Escape") {
-              setQuerySubmenuItem(undefined);
-              setSubMenuTitle(undefined);
+              if (e.key === "Enter") {
+                if (e.shiftKey) {
+                  queryInputRef.current.innerText += "\n";
+                } else {
+                  props.command({
+                    ...querySubmenuItem,
+                    itemType: querySubmenuItem.type,
+                    query: queryInputRef.current.value,
+                    label: `${querySubmenuItem.label}: ${queryInputRef.current.value}`,
+                  });
+                }
+              } else if (e.key === "Escape") {
+                setQuerySubmenuItem(undefined);
+                setSubMenuTitle(undefined);
+              }
+            }}
+          />
+          <Button
+            variant="secondary"
+            size="sm"
+            className="m-0"
+            disabled={!queryInputRef.current}
+            onClick={() =>
+              props.command({
+                ...querySubmenuItem,
+                itemType: querySubmenuItem.type,
+                query: queryInputRef.current!.value,
+                label: `${querySubmenuItem.label}: ${queryInputRef.current!.value}`,
+              })
             }
-          }}
-        />
+          >
+            ⏎
+          </Button>
+        </span>
       ) : (
         <>
           {subMenuTitle && <ItemDiv className="mb-2">{subMenuTitle}</ItemDiv>}

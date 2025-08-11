@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { varWithFallback } from "../styles/theme";
 
-export const defaultBorderRadius = "5px";
+export const defaultBorderRadius = "0.5rem";
 export const lightGray = "#999998";
 export const greenButtonColor = "#189e72";
 
@@ -12,6 +12,9 @@ export const vscForeground = varWithFallback("foreground");
 export const vscButtonBackground = varWithFallback("primary-background");
 export const vscButtonForeground = varWithFallback("primary-foreground");
 export const vscEditorBackground = varWithFallback("editor-background");
+export const vscTextCodeBlockBackground = varWithFallback(
+  "textCodeBlockBackground",
+);
 export const vscListActiveBackground = varWithFallback("list-active");
 export const vscFocusBorder = varWithFallback("border-focus");
 export const vscListActiveForeground = varWithFallback(
@@ -195,32 +198,4 @@ export const CloseButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-`;
-
-export const AnimatedEllipsis = styled.span`
-  &::after {
-    content: ".";
-    animation: ellipsis 2.5s infinite;
-    animation-fill-mode: forwards;
-    animation-play-state: running;
-    will-change: content;
-    display: inline-block;
-    width: 16px;
-    text-align: left;
-  }
-
-  @keyframes ellipsis {
-    0% {
-      content: ".";
-    }
-    33% {
-      content: "..";
-    }
-    66% {
-      content: "...";
-    }
-    100% {
-      content: ".";
-    }
-  }
 `;

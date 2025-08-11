@@ -36,6 +36,7 @@ export type ModelRole = z.infer<typeof modelRolesSchema>;
 export const modelCapabilitySchema = z.union([
   z.literal("tool_use"),
   z.literal("image_input"),
+  z.literal("next_edit"),
 ]);
 export type ModelCapability = z.infer<typeof modelCapabilitySchema>;
 
@@ -45,6 +46,9 @@ export const completionOptionsSchema = z.object({
   temperature: z.number().optional(),
   topP: z.number().optional(),
   topK: z.number().optional(),
+  minP: z.number().optional(),
+  presencePenalty: z.number().optional(),
+  frequencyPenalty: z.number().optional(),
   stop: z.array(z.string()).optional(),
   n: z.number().optional(),
   reasoning: z.boolean().optional(),
@@ -82,6 +86,7 @@ export type EmbedOptions = z.infer<typeof embedOptionsSchema>;
 export const chatOptionsSchema = z.object({
   baseSystemMessage: z.string().optional(),
   baseAgentSystemMessage: z.string().optional(),
+  basePlanSystemMessage: z.string().optional(),
 });
 export type ChatOptions = z.infer<typeof chatOptionsSchema>;
 
@@ -115,6 +120,16 @@ export const autocompleteOptionsSchema = z.object({
   prefixPercentage: z.number().optional(),
   template: z.string().optional(),
   onlyMyCode: z.boolean().optional(),
+  useCache: z.boolean().optional(),
+  useImports: z.boolean().optional(),
+  useRecentlyEdited: z.boolean().optional(),
+  useRecentlyOpened: z.boolean().optional(),
+  // Experimental options: true = enabled, false = disabled, number = enabled w priority
+  experimental_includeClipboard: z.boolean().optional(),
+  experimental_includeRecentlyVisitedRanges: z.boolean().optional(),
+  experimental_includeRecentlyEditedRanges: z.boolean().optional(),
+  experimental_includeDiff: z.boolean().optional(),
+  experimental_enableStaticContextualization: z.boolean().optional(),
 });
 
 /** Prompt templates use Handlebars syntax */
@@ -151,13 +166,15 @@ export const modelSchema = z.union([
   z.object({
     ...baseModelFields,
     provider: z.literal("continue-proxy"),
-    apiKeyLocation: z.string(),
+    apiKeyLocation: z.string().optional(),
+    envSecretLocations: z.record(z.string(), z.string()).optional(),
     orgScopeId: z.string().nullable(),
     onPremProxyUrl: z.string().nullable(),
   }),
   z.object({
     ...baseModelFields,
     provider: z.string().refine((val) => val !== "continue-proxy"),
+    sourceFile: z.string().optional(),
   }),
 ]);
 
@@ -166,7 +183,8 @@ export const partialModelSchema = z.union([
     .object({
       ...baseModelFields,
       provider: z.literal("continue-proxy"),
-      apiKeyLocation: z.string(),
+      apiKeyLocation: z.string().optional(),
+      envSecretLocations: z.record(z.string(), z.string()).optional(),
     })
     .partial(),
   z

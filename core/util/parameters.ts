@@ -15,14 +15,17 @@ export const DEFAULT_AUTOCOMPLETE_OPTS: TabAutocompleteOptions = {
   useCache: true,
   onlyMyCode: true,
   useRecentlyEdited: true,
+  useRecentlyOpened: true,
   disableInFiles: undefined,
   useImports: true,
   transform: true,
   showWhateverWeHaveAtXMs: 300,
+  // Experimental options: true = enabled, false = disabled, number = enabled w priority
   experimental_includeClipboard: true,
   experimental_includeRecentlyVisitedRanges: true,
   experimental_includeRecentlyEditedRanges: true,
   experimental_includeDiff: true,
+  experimental_enableStaticContextualization: false,
 };
 
 export const COUNT_COMPLETION_REJECTED_AFTER = 10_000;

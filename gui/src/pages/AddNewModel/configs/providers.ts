@@ -52,12 +52,13 @@ export const providers: Partial<Record<string, ProviderInfo>> = {
   openai: {
     title: "OpenAI",
     provider: "openai",
-    description: "Use gpt-4, gpt-3.5-turbo, or any other OpenAI model",
+    description: "Use gpt-5, gpt-4, or any other OpenAI model",
     longDescription:
-      "Use gpt-4, gpt-3.5-turbo, or any other OpenAI model. See [here](https://openai.com/product#made-for-developers) to obtain an API key.",
+      "Use gpt-5, gpt-4, or any other OpenAI model. See [here](https://openai.com/product#made-for-developers) to obtain an API key.",
     icon: "openai.png",
     tags: [ModelProviderTags.RequiresApiKey],
     packages: [
+      models.gpt5,
       models.gpt4o,
       models.gpt4omini,
       models.gpt4turbo,
@@ -349,7 +350,19 @@ Select the \`GPT-4o\` model below to complete your provider configuration, but n
       },
       ...completionParamsInputsConfigs,
     ],
-    packages: [models.commandR, models.commandRPlus],
+    packages: [
+      models.commandA032025,
+      models.commandR7BArabic022025,
+      models.commandR7B122024,
+      models.commandRPlus082024,
+      models.commandR082024,
+      models.commandRPlus042024,
+      models.commandR032024,
+      models.c4aiAyaVision32B,
+      models.c4aiAyaVision8B,
+      models.c4aiAyaExpanse32B,
+      models.c4aiAyaExpanse8B,
+    ],
     apiKeyUrl: "https://docs.cohere.com/v2/docs/rate-limits",
   },
   groq: {

@@ -87,6 +87,34 @@ export const models: { [key: string]: ModelPackage } = {
     providerOptions: ["novita", "nebius"],
     isOpenSource: true,
   },
+  gptOss20B: {
+    title: "gpt-oss-20b",
+    description:
+      "OpenAI's 20B open-weight model with native tool use and reasoning for agentic tasks.",
+    refUrl: "https://huggingface.co/openai/gpt-oss-20b",
+    params: {
+      title: "gpt-oss-20b",
+      model: "openai/gpt-oss-20b",
+      contextLength: 128_000,
+    },
+    icon: "openai.png",
+    providerOptions: ["vllm"],
+    isOpenSource: true,
+  },
+  gptOss120B: {
+    title: "gpt-oss-120b",
+    description:
+      "OpenAI's 120B flagship open-weight model built for complex, high‑reasoning agentic workflows.",
+    refUrl: "https://huggingface.co/openai/gpt-oss-120b",
+    params: {
+      title: "gpt-oss-120b",
+      model: "openai/gpt-oss-120b",
+      contextLength: 128_000,
+    },
+    icon: "openai.png",
+    providerOptions: ["vllm"],
+    isOpenSource: true,
+  },
   llama318BChat: {
     title: "Llama 3.1 8B",
     description: "A model from Meta, fine-tuned for chat",
@@ -300,6 +328,32 @@ export const models: { [key: string]: ModelPackage } = {
     },
     icon: "deepseek.png",
     providerOptions: ["nebius"],
+    isOpenSource: true,
+  },
+  exaone32B: {
+    title: "EXAONE 4.0.1-32B",
+    description:
+      "LG AI Research's 32B model with integrated reasoning and agentic tool use capabilities.",
+    refUrl: "https://huggingface.co/LGAI-EXAONE/EXAONE-4.0.1-32B",
+    params: {
+      title: "EXAONE-4.0.1-32B",
+      model: "LGAI-EXAONE/EXAONE-4.0.1-32B",
+      contextLength: 131072,
+    },
+    providerOptions: ["openai"],
+    isOpenSource: true,
+  },
+  exaone12B: {
+    title: "EXAONE 4.0-1.2B",
+    description:
+      "Compact EXAONE 4.0 model suitable for on-device use while retaining tool calling support.",
+    refUrl: "https://huggingface.co/LGAI-EXAONE/EXAONE-4.0-1.2B",
+    params: {
+      title: "EXAONE-4.0-1.2B",
+      model: "LGAI-EXAONE/EXAONE-4.0-1.2B",
+      contextLength: 65536,
+    },
+    providerOptions: ["openai"],
     isOpenSource: true,
   },
   moonshotChat: {
@@ -913,12 +967,68 @@ export const models: { [key: string]: ModelPackage } = {
     providerOptions: ["gemini"],
     isOpenSource: false,
   },
-  commandR: {
-    title: "Command R",
+  c4aiAyaExpanse8B: {
+    title: "C4AI Aya Expanse 8B",
+    description:
+      "Aya Expanse is a massively multilingual large language model excelling in enterprise-scale tasks.",
+    params: {
+      model: "c4ai-aya-expanse-8b",
+      contextLength: 8_000,
+      title: "C4AI Aya Expanse 8B",
+      apiKey: "",
+    },
+    providerOptions: ["cohere"],
+    icon: "cohere.png",
+    isOpenSource: false,
+  },
+  c4aiAyaExpanse32B: {
+    title: "C4AI Aya Expanse 32B",
+    description:
+      "Aya Expanse is a massively multilingual large language model excelling in enterprise-scale tasks.",
+    params: {
+      model: "c4ai-aya-expanse-32b",
+      contextLength: 128_000,
+      title: "C4AI Aya Expanse 32B",
+      apiKey: "",
+    },
+    providerOptions: ["cohere"],
+    icon: "cohere.png",
+    isOpenSource: false,
+  },
+  c4aiAyaVision8B: {
+    title: "C4AI Aya Vision 8B",
+    description:
+      "Aya Vision is a state-of-the-art multimodal and massively multilingual large language model excelling at critical benchmarks for language, text, and image capabilities.",
+    params: {
+      model: "c4ai-aya-vision-8b",
+      contextLength: 16_000,
+      title: "C4AI Aya Vision 8B",
+      apiKey: "",
+    },
+    providerOptions: ["cohere"],
+    icon: "cohere.png",
+    isOpenSource: false,
+  },
+  c4aiAyaVision32B: {
+    title: "C4AI Aya Vision 32B",
+    description:
+      "Aya Vision is a state-of-the-art multimodal and massively multilingual large language model excelling at critical benchmarks for language, text, and image capabilities.",
+    params: {
+      model: "c4ai-aya-vision-32b",
+      contextLength: 16_000,
+      title: "C4AI Aya Vision 32B",
+      apiKey: "",
+    },
+    providerOptions: ["cohere"],
+    icon: "cohere.png",
+    isOpenSource: false,
+  },
+  commandR032024: {
+    title: "Command R 03-2024",
     description:
       "Command R is a scalable generative model targeting RAG and Tool Use to enable production-scale AI for enterprise.",
     params: {
-      model: "command-r",
+      model: "command-r-03-2024",
       contextLength: 128_000,
       title: "Command R",
       apiKey: "",
@@ -927,18 +1037,100 @@ export const models: { [key: string]: ModelPackage } = {
     icon: "cohere.png",
     isOpenSource: false,
   },
-  commandRPlus: {
-    title: "Command R+",
+  commandRPlus042024: {
+    title: "Command R+ 04-2024",
     description:
-      "Command R+ is a state-of-the-art RAG-optimized model designed to tackle enterprise-grade workloads",
+      "Command R+ is a state-of-the-art RAG-optimized model designed to tackle enterprise-grade workloads.",
     params: {
-      model: "command-r-plus",
+      model: "command-r-plus-04-2024",
       contextLength: 128_000,
       title: "Command R+",
       apiKey: "",
     },
     providerOptions: ["cohere"],
     icon: "cohere.png",
+    isOpenSource: false,
+  },
+  commandR082024: {
+    title: "Command R 08-2024",
+    description:
+      "Command R is a scalable generative model targeting RAG and Tool Use to enable production-scale AI for enterprise.",
+    params: {
+      model: "command-r-08-2024",
+      contextLength: 128_000,
+      title: "Command R 08-2024",
+      apiKey: "",
+    },
+    providerOptions: ["cohere"],
+    icon: "cohere.png",
+    isOpenSource: false,
+  },
+  commandRPlus082024: {
+    title: "Command R+ 08-2024",
+    description:
+      "Command R+ is a state-of-the-art RAG-optimized model designed to tackle enterprise-grade workloads.",
+    params: {
+      model: "command-r-plus-08-2024",
+      contextLength: 128_000,
+      title: "Command R+ 08-2024",
+      apiKey: "",
+    },
+    providerOptions: ["cohere"],
+    icon: "cohere.png",
+    isOpenSource: false,
+  },
+  commandR7B122024: {
+    title: "Command R7B 12-2024",
+    description:
+      "The smallest model in our R series delivers top-tier speed, efficiency, and quality to build powerful AI applications on commodity GPUs and edge devices.",
+    params: {
+      model: "command-r7b-12-2024",
+      contextLength: 128_000,
+      title: "Command R7B 12-2024",
+      apiKey: "",
+    },
+    providerOptions: ["cohere"],
+    icon: "cohere.png",
+    isOpenSource: false,
+  },
+  commandR7BArabic022025: {
+    title: "Command R7B Arabic 02-2025",
+    description:
+      "Our state-of-the-art lightweight multilingual AI model has been optimized for advanced Arabic language capabilities to support enterprises in the MENA region.",
+    params: {
+      model: "command-r7b-arabic-02-2025",
+      contextLength: 128_000,
+      title: "Command R7B Arabic 02-2025",
+      apiKey: "",
+    },
+    providerOptions: ["cohere"],
+    icon: "cohere.png",
+    isOpenSource: false,
+  },
+  commandA032025: {
+    title: "Command A 03-2025",
+    description:
+      "Command A is Cohere’s most performant model to date, excelling at real world enterprise tasks including tool use, retrieval augmented generation (RAG), agents, and multilingual use cases.",
+    params: {
+      model: "command-a-03-2025",
+      contextLength: 256_000,
+      title: "Command A 03-2025",
+      apiKey: "",
+    },
+    providerOptions: ["cohere"],
+    icon: "cohere.png",
+    isOpenSource: false,
+  },
+  gpt5: {
+    title: "GPT-5",
+    description: "OpenAI's next-generation, high-intelligence flagship model",
+    params: {
+      model: "gpt-5",
+      contextLength: 400_000,
+      title: "GPT-5",
+    },
+    providerOptions: ["openai"],
+    icon: "openai.png",
     isOpenSource: false,
   },
   gpt4turbo: {

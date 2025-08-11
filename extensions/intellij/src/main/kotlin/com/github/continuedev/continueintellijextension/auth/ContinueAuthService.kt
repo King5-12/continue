@@ -1,33 +1,32 @@
 package com.github.continuedev.continueintellijextension.auth
 
+import com.github.continuedev.continueintellijextension.error.ContinueSentryService
 import com.github.continuedev.continueintellijextension.services.ContinueExtensionSettings
 import com.github.continuedev.continueintellijextension.services.ContinuePluginService
-import com.github.continuedev.continueintellijextension.utils.Desktop
 import com.google.gson.Gson
 import com.intellij.credentialStore.Credentials
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.remoteServer.util.CloudConfigurationUtil.createCredentialAttributes
+import com.intellij.util.io.HttpRequests
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.net.URL
+import kotlin.time.Duration.Companion.minutes
 
 @Service
 class ContinueAuthService {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val log = Logger.getInstance(ContinueAuthService::class.java)
 
     companion object {
-        fun getInstance(): ContinueAuthService = service<ContinueAuthService>()
         private const val CREDENTIALS_USER = "ContinueAuthUser"
         private const val ACCESS_TOKEN_KEY = "ContinueAccessToken"
         private const val REFRESH_TOKEN_KEY = "ContinueRefreshToken"
@@ -173,7 +172,7 @@ class ContinueAuthService {
 
         // Still open the URL in the browser (keeping existing behavior)
         if (authUrl != null) {
-            Desktop.browse(java.net.URI(authUrl))
+            BrowserUtil.open(authUrl!!)
         }
 
         return authUrl
@@ -264,6 +263,17 @@ class ContinueAuthService {
         setAccountLabel(info.account.label)
     }
 
+    private data class RefreshTokenResponse(
+        val accessToken: String,
+        val refreshToken: String,
+        val user: User,
+    ) {
+        data class User(
+            val firstName: String,
+            val lastName: String,
+            val email: String
+        )
+    }
 }
 
 // Data class to represent the ControlPlaneSessionInfo
