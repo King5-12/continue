@@ -82,7 +82,7 @@ class IdeProtocolClient(
                             "windowId" to continuePluginService.windowId,
                             "workspacePaths" to continuePluginService.workspacePaths,
                             "vscMachineId" to getMachineUniqueID(),
-                            "vscMediaUrl" to "http://continue",
+                            "vscMediaUrl" to "http://continue-dragon",
                         )
                         respond(jsonData)
                     }

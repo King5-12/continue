@@ -48,6 +48,7 @@ export const PROVIDER_TOOL_SUPPORT: Record<string, (model: string) => boolean> =
       return false;
     },
     openai: (model) => {
+      return true;
       // https://platform.openai.com/docs/guides/function-calling#models-supporting-function-calling
       if (
         model.toLowerCase().startsWith("gpt-4") ||

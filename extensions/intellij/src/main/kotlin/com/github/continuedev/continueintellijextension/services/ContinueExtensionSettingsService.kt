@@ -79,8 +79,8 @@ class ContinueRemoteConfigSyncResponse {
 }
 
 @State(
-    name = "com.github.continuedev.continueintellijextension.services.ContinueExtensionSettings",
-    storages = [Storage("ContinueExtensionSettings.xml")]
+    name = "com.github.continuedev.continueintellijextension.services.ContinueExtensionSettings.Dragon",
+    storages = [Storage("ContinueExtensionSettingsDragon.xml")]
 )
 open class ContinueExtensionSettings : PersistentStateComponent<ContinueExtensionSettings.ContinueState> {
 

@@ -49,7 +49,10 @@ import { streamEditThunk } from "../../redux/thunks/edit";
 import { loadLastSession } from "../../redux/thunks/session";
 import { isJetBrains, isMetaEquivalentKeyPressed } from "../../util";
 
+import { HubSessionInfo } from "core/control-plane/AuthTypes";
 import { OnboardingModes } from "core/protocol/core";
+import ConfirmationDialog from "../../components/dialogs/ConfirmationDialog";
+import { useAuth } from "../../context/Auth";
 import { getLocalStorage, setLocalStorage } from "../../util/localStorage";
 import { EmptyChatBody } from "./EmptyChatBody";
 import { ExploreDialogWatcher } from "./ExploreDialogWatcher";
@@ -99,6 +102,8 @@ export function Chat() {
   const showSessionTabs = useAppSelector(
     (store) => store.config.config.ui?.showSessionTabs,
   );
+  const { session } = useAuth();
+
   const selectedModels = useAppSelector(
     (store) => store.config?.config.selectedModelByRole,
   );
@@ -382,9 +387,27 @@ export function Chat() {
         <ContinueInputBox
           isMainInput
           isLastUserInput={false}
-          onEnter={(editorState, modifiers, editor) =>
-            sendInput(editorState, modifiers, undefined, editor)
-          }
+          onEnter={(editorState, modifiers, editor) => {
+            if (!(session as HubSessionInfo)?.account?.id) {
+              dispatch(
+                setDialogMessage(
+                  <ConfirmationDialog
+                    confirmText="确认"
+                    text="请登录后再使用!"
+                    onConfirm={() => {
+                      dispatch(setDialogMessage(undefined));
+                    }}
+                    onCancel={() => {
+                      dispatch(setDialogMessage(undefined));
+                    }}
+                  />,
+                ),
+              );
+              return;
+            }
+
+            sendInput(editorState, modifiers, undefined, editor);
+          }}
           inputId={MAIN_EDITOR_INPUT_ID}
         />
 

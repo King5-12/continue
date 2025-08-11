@@ -222,22 +222,51 @@ export async function unrollAssistant(
   id: PackageIdentifier,
   registry: Registry,
   options: UnrollAssistantOptions & { asConfigResult: true },
+  isDragon?: boolean,
 ): Promise<ConfigResult<AssistantUnrolled>>;
 
 export async function unrollAssistant(
   id: PackageIdentifier,
   registry: Registry,
   options: UnrollAssistantOptions,
+  isDragon?: boolean,
 ): Promise<AssistantUnrolled>;
 
 export async function unrollAssistant(
   id: PackageIdentifier,
   registry: Registry,
   options: UnrollAssistantOptions,
+  isDragon: boolean = false,
 ): Promise<AssistantUnrolled | ConfigResult<AssistantUnrolled>> {
   // Request the content from the registry
-  const rawContent = await registry.getContent(id);
-
+  let rawContent = "";
+  if (isDragon) {
+    rawContent = `name: Local Assistant
+version: 1.0.0
+schema: v1
+models:
+  - name: Codestral-22B-v0.1
+    provider: openai
+    model: Codestral-22B-v0.1
+    apiBase: http://10.10.13.85:62001/v1
+    roles:
+      - autocomplete
+  - name: DeepSeek-R1
+    provider: openai
+    model: DeepSeek-R1
+    apiBase: http://10.10.13.85:8000/v1
+context:
+  - provider: code
+  - provider: docs
+  - provider: diff
+  - provider: terminal
+  - provider: problems
+  - provider: folder
+  - provider: codebase
+`;
+  } else {
+    rawContent = await registry.getContent(id);
+  }
   const result = unrollAssistantFromContent(id, rawContent, registry, options);
 
   return result;
@@ -267,6 +296,7 @@ export async function unrollAssistantFromContent(
   options: UnrollAssistantOptions,
 ): Promise<AssistantUnrolled | ConfigResult<AssistantUnrolled>> {
   // Parse string to Zod-validated YAML
+
   let parsedYaml = parseConfigYaml(rawYaml);
 
   // Unroll blocks and convert their secrets to FQSNs

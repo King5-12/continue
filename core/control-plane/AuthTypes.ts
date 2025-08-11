@@ -16,7 +16,7 @@ export type ControlPlaneSessionInfo = HubSessionInfo | OnPremSessionInfo;
 export function isOnPremSession(
   sessionInfo: ControlPlaneSessionInfo | undefined,
 ): sessionInfo is OnPremSessionInfo {
-  return sessionInfo !== undefined && sessionInfo.AUTH_TYPE === AuthType.OnPrem;
+  return false;
 }
 
 export enum AuthType {

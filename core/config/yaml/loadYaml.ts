@@ -146,6 +146,7 @@ async function loadConfigYaml(options: {
         injectBlocks: allLocalBlocks,
         asConfigResult: true,
       },
+      true,
     );
     config = unrollResult.config;
     if (unrollResult.errors) {

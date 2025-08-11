@@ -22,7 +22,7 @@ class ContinueBrowser(val project: Project, url: String) {
     private fun registerAppSchemeHandler() {
         CefApp.getInstance().registerSchemeHandlerFactory(
             "http",
-            "continue",
+            "continue-dragon",
             CustomSchemeHandlerFactory()
         )
     }

@@ -2,9 +2,7 @@ import {
   ArrowPathIcon,
   CheckIcon,
   ChevronDownIcon,
-  Cog6ToothIcon,
   CubeIcon,
-  PlusIcon,
 } from "@heroicons/react/24/outline";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useAuth } from "../../context/Auth";
@@ -220,14 +218,14 @@ function ModelSelect() {
         <ListboxOptions className="min-w-[160px]">
           <div className="flex items-center justify-between gap-1 px-2 py-1">
             <span className="font-semibold">Models</span>
-            <Cog6ToothIcon
+            {/* <Cog6ToothIcon
               className="text-description h-3 w-3 cursor-pointer hover:brightness-125"
               onClick={() =>
                 ideMessenger.post("config/openProfile", {
                   profileId: undefined,
                 })
               }
-            />
+            /> */}
           </div>
 
           <div className="no-scrollbar max-h-[300px] overflow-y-auto">
@@ -253,7 +251,7 @@ function ModelSelect() {
             )}
           </div>
 
-          {!isConfigLoading && selectedProfile?.profileType === "local" && (
+          {/* {!isConfigLoading && selectedProfile?.profileType === "local" && (
             <ListboxOption
               key={options.length}
               onClick={onClickAddModel}
@@ -270,7 +268,7 @@ function ModelSelect() {
                 Add Chat model
               </div>
             </ListboxOption>
-          )}
+          )} */}
 
           {!isConfigLoading && (
             <div

@@ -20,6 +20,7 @@ interface OnboardingCardProps {
 }
 
 export function OnboardingCard({ isDialog }: OnboardingCardProps) {
+  return null;
   const { activeTab, close, setActiveTab } = useOnboardingCard();
   const config = useAppSelector((store) => store.config.config);
 

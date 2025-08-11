@@ -1,7 +1,7 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.continuedev.continueintellijextension</id>
-    <name>Continue</name>
+    <id>com.github.continuedev.continueintellijextension.dragon</id>
+    <name>Continue Dragon</name>
     <vendor url="https://www.continue.dev/">continue-dev</vendor>
     <change-notes>
         <![CDATA[View the latest release notes on <a href="https://github.com/continuedev/continue/releases">GitHub</a>]]></change-notes>
@@ -13,13 +13,17 @@
         com.intellij.modules.json
     </depends>
 
+    <!-- Rider support -->
+    <depends optional="true">com.intellij.modules.rider</depends>
+    <depends optional="true">com.jetbrains.rider</depends>
+
     <!-- com.intellij.openapi.module.ModuleManager.Companion is only available since this build -->
     <idea-version since-build="223.7571.182"/>
 
     <extensions defaultExtensionNs="com.intellij">
         <editorFactoryListener
                 implementation="com.github.continuedev.continueintellijextension.autocomplete.AutocompleteEditorListener"/>
-        <toolWindow id="Continue" anchor="right" icon="/tool-window-icon.svg"
+        <toolWindow id="Continue Dragon" anchor="right" icon="/tool-window-icon.svg"
                     factoryClass="com.github.continuedev.continueintellijextension.toolWindow.ContinuePluginToolWindowFactory"/>
         <projectService id="ContinuePluginService"
                         serviceImplementation="com.github.continuedev.continueintellijextension.services.ContinuePluginService"/>

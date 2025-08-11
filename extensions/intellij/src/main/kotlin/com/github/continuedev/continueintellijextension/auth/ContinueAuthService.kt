@@ -36,15 +36,16 @@ class ContinueAuthService {
     }
 
     private fun getControlPlaneUrl(): String {
-        val env = service<ContinueExtensionSettings>().continueState.continueTestEnvironment;
-        when (env) {
-            "none" -> return "https://control-plane-api-service-i3dqylpbqa-uc.a.run.app"
-            "local" -> return "http://localhost:3001"
-            "production" -> return "https://api.continue.dev"
-            "test" -> return "https://api-test.continue.dev"
-        }
+        //        val env =
+        // service<ContinueExtensionSettings>().continueState.continueTestEnvironment
+        //        when (env) {
+        //            "none" -> return "https://control-plane-api-service-i3dqylpbqa-uc.a.run.app"
+        //            "local" -> return "http://localhost:3001"
+        //            "production" -> return "https://api.continue.dev"
+        //            "test" -> return "https://api-test.continue.dev"
+        //        }
 
-        return "https://control-plane-api-service-i3dqylpbqa-uc.a.run.app"
+        return "http://10.10.13.50:5001"
     }
 
     init {
@@ -53,14 +54,15 @@ class ContinueAuthService {
 
     fun startAuthFlow(project: Project, useOnboarding: Boolean) {
         // Open login page
-        val url = openSignInPage(project, useOnboarding)
+        // val url = openSignInPage(project, useOnboarding)
 
         // Open a dialog where the user should paste their sign-in token
         ApplicationManager.getApplication().invokeLater {
-            val dialog = ContinueAuthDialog(useOnboarding, url) { token ->
-                // Store the token
-                updateRefreshToken(token)
-            }
+            val dialog =
+                    ContinueAuthDialog(useOnboarding) { email, password ->
+                        // Store the token
+                        updateRefreshToken(email, password)
+                    }
             dialog.show()
         }
     }
@@ -76,30 +78,31 @@ class ContinueAuthService {
             .handleUpdatedSessionInfo(null)
     }
 
-    private fun updateRefreshToken(token: String) {
+    private fun updateRefreshToken(username: String, password: String) {
         // Launch a coroutine to call the suspend function
         coroutineScope.launch {
             try {
-                val response = refreshToken(token)
-                val accessToken = response["accessToken"] as? String
-                val refreshToken = response["refreshToken"] as? String
-                val user = response["user"] as? Map<*, *>
-                val firstName = user?.get("firstName") as? String
-                val lastName = user?.get("lastName") as? String
-                val label = "$firstName $lastName"
-                val id = user?.get("id") as? String
-                val email = user?.get("email") as? String
+                val response = refreshToken(username, password)
+                val token = response["token"] as? String
+                val username = response["username"] as? String
+                val label = username ?: "Unknown User"
+                val id = username ?: ""
+                val email = username ?: "" // 如果服务器返回的是用户名而不是邮箱
 
                 // Persist the session info
-                setRefreshToken(refreshToken!!)
+                setRefreshToken(token!!)
                 val sessionInfo =
-                    ControlPlaneSessionInfo(accessToken!!, ControlPlaneSessionInfo.Account(email!!, label))
+                        ControlPlaneSessionInfo(
+                                token!!,
+                                ControlPlaneSessionInfo.Account(email!!, label)
+                        )
                 setControlPlaneSessionInfo(sessionInfo)
 
                 // Notify listeners
-                ApplicationManager.getApplication().messageBus.syncPublisher(AuthListener.TOPIC)
-                    .handleUpdatedSessionInfo(sessionInfo)
-
+                ApplicationManager.getApplication()
+                        .messageBus
+                        .syncPublisher(AuthListener.TOPIC)
+                        .handleUpdatedSessionInfo(sessionInfo)
             } catch (e: Exception) {
                 // Handle any exceptions
                 println("Exception while refreshing token: ${e.message}")
@@ -109,40 +112,45 @@ class ContinueAuthService {
 
     private fun setupRefreshTokenInterval() {
         // Launch a coroutine to refresh the token every 30 minutes
-        coroutineScope.launch {
-            while (true) {
-                val refreshToken = getRefreshToken()
-                if (refreshToken != null) {
-                    updateRefreshToken(refreshToken)
-                }
+        // coroutineScope.launch {
+        //     while (true) {
+        //         val refreshToken = getRefreshToken()
+        //         if (refreshToken != null) {
+        //             updateRefreshToken(refreshToken)
+        //         }
 
-                kotlinx.coroutines.delay(15 * 60 * 1000) // 15 minutes in milliseconds
+        //         kotlinx.coroutines.delay(15 * 60 * 1000) // 15 minutes in milliseconds
+        //     }
+        // }
+    }
+
+    private suspend fun refreshToken(email: String, password: String) =
+            withContext(Dispatchers.IO) {
+                val client = OkHttpClient()
+                val url = URL(getControlPlaneUrl()).toURI().resolve("/api/login").toURL()
+
+                val jsonBody = mapOf("email" to email, "password" to password)
+                println("jsonBody: $jsonBody")
+                println("url: $url")
+                val jsonString = Gson().toJson(jsonBody)
+                val requestBody = jsonString.toRequestBody("application/json".toMediaType())
+
+                val request =
+                        Request.Builder()
+                                .url(url)
+                                .post(requestBody)
+                                .header("Content-Type", "application/json")
+                                .build()
+
+                val response = client.newCall(request).execute()
+
+                val responseBody = response.body?.string()
+                val gson = Gson()
+                val responseMap = gson.fromJson(responseBody, Map::class.java)
+
+                println("responseMap: $responseMap")
+                responseMap
             }
-        }
-    }
-
-    private suspend fun refreshToken(refreshToken: String) = withContext(Dispatchers.IO) {
-        val client = OkHttpClient()
-        val url = URL(getControlPlaneUrl()).toURI().resolve("/auth/refresh").toURL()
-        val jsonBody = mapOf("refreshToken" to refreshToken)
-        val jsonString = Gson().toJson(jsonBody)
-        val requestBody = jsonString.toRequestBody("application/json".toMediaType())
-
-        val request = Request.Builder()
-            .url(url)
-            .post(requestBody)
-            .header("Content-Type", "application/json")
-            .build()
-
-        val response = client.newCall(request).execute()
-
-        val responseBody = response.body?.string()
-        val gson = Gson()
-        val responseMap = gson.fromJson(responseBody, Map::class.java)
-
-        responseMap
-    }
-
 
     private fun openSignInPage(project: Project, useOnboarding: Boolean): String? {
         var authUrl: String? = null

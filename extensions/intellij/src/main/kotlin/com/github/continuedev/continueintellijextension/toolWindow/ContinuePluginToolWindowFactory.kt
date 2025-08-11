@@ -41,7 +41,7 @@ class ContinuePluginToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun shouldBeAvailable(project: Project) = true
 
   class ContinuePluginWindow(project: Project) {
-    private val defaultGUIUrl = "http://continue/index.html"
+    private val defaultGUIUrl = "http://continue-dragon/index.html"
 
     init {
       System.setProperty("ide.browser.jcef.jsQueryPoolSize", JS_QUERY_POOL_SIZE)

@@ -1,7 +1,6 @@
 import {
   ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
-  BuildingOfficeIcon,
   ChevronDownIcon,
   Cog6ToothIcon,
   ExclamationTriangleIcon,
@@ -18,7 +17,6 @@ import {
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import {
   fontSize,
-  getMetaKeyLabel,
   isLocalProfile,
   isMetaEquivalentKeyPressed,
 } from "../../../util";
@@ -324,7 +322,7 @@ export default function AssistantSelect() {
               })}
             </div>
 
-            <div className="flex flex-col">
+            {/* <div className="flex flex-col">
               <div className="flex flex-row items-center">
                 <ListboxOption
                   value={"new-assistant"}
@@ -380,7 +378,7 @@ export default function AssistantSelect() {
                   </span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </ListboxOptions>
         </Transition>
       </div>

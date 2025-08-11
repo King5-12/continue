@@ -85,7 +85,7 @@ export default async function doLoadConfig(options: {
   let errors: ConfigValidationError[] | undefined;
   let configLoadInterrupted = false;
 
-  if (overrideConfigYaml || fs.existsSync(configYamlPath)) {
+  if (true) {
     const result = await loadContinueConfigFromYaml({
       ide,
       ideSettings,
