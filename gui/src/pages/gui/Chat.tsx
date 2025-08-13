@@ -47,6 +47,7 @@ import { HubSessionInfo } from "core/control-plane/AuthTypes";
 import { FatalErrorIndicator } from "../../components/config/FatalErrorNotice";
 import ConfirmationDialog from "../../components/dialogs/ConfirmationDialog";
 import InlineErrorMessage from "../../components/mainInput/InlineErrorMessage";
+import { useAuth } from "../../context/Auth";
 import { setDialogMessage } from "../../redux/slices/uiSlice";
 import { cancelStream } from "../../redux/thunks/cancelStream";
 import { EmptyChatBody } from "./EmptyChatBody";

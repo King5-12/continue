@@ -4,6 +4,7 @@ import com.github.continuedev.continueintellijextension.error.ContinueSentryServ
 import com.github.continuedev.continueintellijextension.services.ContinueExtensionSettings
 import com.github.continuedev.continueintellijextension.services.ContinuePluginService
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.intellij.credentialStore.Credentials
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.passwordSafe.PasswordSafe
@@ -19,6 +20,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.lang.reflect.Type
+import java.net.URL
 import kotlin.time.Duration.Companion.minutes
 
 @Service
@@ -123,33 +128,26 @@ class ContinueAuthService {
         // }
     }
 
-    private suspend fun refreshToken(email: String, password: String) =
-            withContext(Dispatchers.IO) {
-                val client = OkHttpClient()
-                val url = URL(getControlPlaneUrl()).toURI().resolve("/api/login").toURL()
-
-                val jsonBody = mapOf("email" to email, "password" to password)
-                println("jsonBody: $jsonBody")
-                println("url: $url")
-                val jsonString = Gson().toJson(jsonBody)
-                val requestBody = jsonString.toRequestBody("application/json".toMediaType())
-
-                val request =
-                        Request.Builder()
-                                .url(url)
-                                .post(requestBody)
-                                .header("Content-Type", "application/json")
-                                .build()
-
-                val response = client.newCall(request).execute()
-
-                val responseBody = response.body?.string()
-                val gson = Gson()
-                val responseMap = gson.fromJson(responseBody, Map::class.java)
-
-                println("responseMap: $responseMap")
-                responseMap
+    private suspend fun refreshToken(email: String, password: String): Map<String, Any> =
+        withContext(Dispatchers.IO) {
+            val url = URL(getControlPlaneUrl()).toURI().resolve("/api/login").toURL().toString()
+            val jsonBody = mapOf("email" to email, "password" to password)
+            val jsonString = Gson().toJson(jsonBody)
+            
+            try {
+                val responseBody = HttpRequests.post(url, "application/json")
+                    .connect { request ->
+                        request.write(jsonString)
+                        request.readString()
+                    }
+                
+                val mapType: Type = object : TypeToken<Map<String, Any>>() {}.type
+                Gson().fromJson<Map<String, Any>>(responseBody, mapType)
+            } catch (e: IOException) {
+                log.error("Error refreshing token", e)
+                emptyMap()
             }
+        }
 
     private fun openSignInPage(project: Project, useOnboarding: Boolean): String? {
         var authUrl: String? = null

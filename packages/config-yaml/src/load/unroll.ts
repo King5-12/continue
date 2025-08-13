@@ -231,10 +231,10 @@ export async function unrollAssistant(
 version: 1.0.0
 schema: v1
 models:
-  - name: Codestral-22B-v0.1
+  - name: DeepSeek-R1
     provider: openai
-    model: Codestral-22B-v0.1
-    apiBase: http://10.10.13.85:62001/v1
+    model: DeepSeek-R1
+    apiBase: http://10.10.13.85:8000/v1
     roles:
       - autocomplete
   - name: DeepSeek-R1
