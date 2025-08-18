@@ -27,6 +27,7 @@ export class BlockDuplicationDetector {
   }
 
   private check(identifier: string, blockType: BlockType): boolean {
+    if (blockType == "models") return false;
     if (this.records.get(blockType)!.has(identifier)) {
       return true;
     } else {
